@@ -1,0 +1,13 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+    level: 1
+    paths:
+        - src
+        - pay-in-3.php
+    excludePaths:
+        - */vendor/*
+
+    ignoreErrors:
+        - '#^Path in require_once\(\) .*\.php" is not a file or it does not exist\.$#'

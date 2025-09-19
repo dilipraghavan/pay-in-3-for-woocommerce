@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<ruleset name="Pay-in-3 for WooCommerce">
+    <description>WpShiftStudio standards.</description>
+    <arg name="colors"/>
+    <arg value="sp"/>
+
+    <file>pay-in-3.php</file>
+    <file>src</file>
+
+    <rule ref="WordPress">
+        <exclude name="WordPress.Files.FileName"/>
+    </rule>
+</ruleset>
