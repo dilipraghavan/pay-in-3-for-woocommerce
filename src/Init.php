@@ -8,6 +8,7 @@
 namespace WpShiftStudio\PayIn3ForWC;
 
 use WpShiftStudio\PayIn3ForWC\Database\Manager as DbManager;
+use WpShiftStudio\PayIn3ForWC\Gateway\PayIn3Gateway;
 
 /**
  * Initialization class for the plugin
@@ -23,5 +24,25 @@ class Init {
 	 */
 	public static function activate() {
 		( new DbManager() )->run();
+	}
+
+	/**
+	 * Register all hooks used by the plugin.
+	 *
+	 * @return void
+	 */
+	public static function register_hooks(){	
+		add_filter('woocommerce_payment_gateways', [__CLASS__, 'register_gateway']);
+	}
+
+	/**
+	 * Register the Pay In 3 gateway with woocommerce.
+	 *
+	 * @param array $gateways An array of existing gateways.
+	 * @return array
+	 */
+	public static function register_gateway($gateways){
+		$gateways[] = PayIn3Gateway::class;
+		return $gateways;
 	}
 }

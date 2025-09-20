@@ -20,3 +20,11 @@ require __DIR__ . '/vendor/autoload.php';
 use WpShiftStudio\PayIn3ForWC\Init;
 
 register_activation_hook( __FILE__, array( Init::class, 'activate' ) );
+
+add_action('plugins_loaded', function(){
+
+	if(!class_exists('Woocommerce'))
+		return;
+
+	Init::register_hooks();
+});
