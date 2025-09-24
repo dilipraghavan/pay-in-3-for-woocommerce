@@ -21,10 +21,14 @@ use WpShiftStudio\PayIn3ForWC\Init;
 
 register_activation_hook( __FILE__, array( Init::class, 'activate' ) );
 
-add_action('plugins_loaded', function(){
+add_action(
+	'plugins_loaded',
+	function () {
 
-	if(!class_exists('Woocommerce'))
-		return;
+		if ( ! class_exists( 'Woocommerce' ) ) {
+			return;
+		}
 
-	Init::register_hooks();
-});
+		Init::register_hooks();
+	}
+);

@@ -1,13 +1,18 @@
 includes:
-    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+  - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
-    level: 1
-    paths:
-        - src
-        - pay-in-3.php
-    excludePaths:
-        - */vendor/*
+  level: 4
+  paths:
+    - src
+    - pay-in-3.php
+  excludePaths:
+    analyse:
+      - %currentWorkingDirectory%/vendor/*
 
-    ignoreErrors:
-        - '#^Path in require_once\(\) .*\.php" is not a file or it does not exist\.$#'
+  scanFiles:
+    - vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+    - vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+
+  ignoreErrors:
+    - '#Path in require_once\(\) .* is not a file#'

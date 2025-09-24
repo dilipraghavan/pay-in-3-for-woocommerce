@@ -31,8 +31,8 @@ class Init {
 	 *
 	 * @return void
 	 */
-	public static function register_hooks(){	
-		add_filter('woocommerce_payment_gateways', [__CLASS__, 'register_gateway']);
+	public static function register_hooks() {
+		add_filter( 'woocommerce_payment_gateways', array( __CLASS__, 'register_gateway' ) );
 	}
 
 	/**
@@ -41,7 +41,7 @@ class Init {
 	 * @param array $gateways An array of existing gateways.
 	 * @return array
 	 */
-	public static function register_gateway($gateways){
+	public static function register_gateway( $gateways ) {
 		$gateways[] = PayIn3Gateway::class;
 		return $gateways;
 	}
