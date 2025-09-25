@@ -27,7 +27,7 @@ class Init {
 	public static function activate() {
 		( new DbManager() )->run();
 
-		(new Scheduler())->schedule_daily_event();
+		( new Scheduler() )->schedule_daily_event();
 	}
 
 	/**
@@ -37,10 +37,10 @@ class Init {
 	 */
 	public static function register_hooks() {
 		add_filter( 'woocommerce_payment_gateways', array( __CLASS__, 'register_gateway' ) );
-		add_action('rest_api_init', [__CLASS__, 'register_webhook_routes']);
-		
+		add_action( 'rest_api_init', array( __CLASS__, 'register_webhook_routes' ) );
+
 		$scheduler = new Scheduler();
-		add_action(Scheduler::CRON_HOOK, [$scheduler, 'handle_due_installments']);
+		add_action( Scheduler::CRON_HOOK, array( $scheduler, 'handle_due_installments' ) );
 	}
 
 	/**
@@ -59,9 +59,8 @@ class Init {
 	 *
 	 * @return void
 	 */
-	public static function register_webhook_routes(){
+	public static function register_webhook_routes() {
 		$handler = new Handler();
 		$handler->register_routes();
-	} 
-	
+	}
 }

@@ -20,15 +20,19 @@ use WpShiftStudio\PayIn3ForWC\Database\Manager;
  */
 class PayIn3Gateway extends WC_Payment_Gateway {
 
-    /**
-     * @var MockProvider The API provider for handling payments.
-     */
-    protected $api_provider;
+	/**
+	 * The API provider for handling payments.
+	 *
+	 * @var MockProvider
+	 */
+	protected $api_provider;
 
-    /**
-     * @var Manager Handles all database operations.
-     */
-    protected $database_manager;
+	/**
+	 * Handles all database operations.
+	 *
+	 * @var Manager
+	 */
+	protected $database_manager;
 
 	/**
 	 * Constructor for the Gateway
@@ -40,15 +44,14 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 		$this->title              = __( 'Pay in 3', 'pay-in-3' );
 		$this->method_title       = __( 'Pay in 3', 'pay-in-3' );
 		$this->method_description = __( 'Allows customers to pay for their order in three installments.', 'pay-in-3' );
-		$this->api_provider = new MockProvider();
-        $this->database_manager = new Manager();
+		$this->api_provider       = new MockProvider();
+		$this->database_manager   = new Manager();
 
 		// Method with all the settings fields.
 		$this->init_form_fields();
 
 		// Load the settings.
 		$this->init_settings();
-
 	}
 
 	/**
@@ -213,41 +216,41 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 	}
 
 	/**
-     * Creates and saves the installments plan.
-     *
-     * @param WC_Order $order The WooCommerce order object.
-     * @param float    $first_payment_amount The amount of the first payment.
-     * @return void
-     */
-    private function create_installments( $order, $first_payment_amount ) {
+	 * Creates and saves the installments plan.
+	 *
+	 * @param WC_Order $order The WooCommerce order object.
+	 * @param float    $first_payment_amount The amount of the first payment.
+	 * @return void
+	 */
+	private function create_installments( $order, $first_payment_amount ) {
 
-        $total_amount          = $order->get_total();
-        $remaining_balance     = $total_amount - $first_payment_amount;
-        $second_payment_amount = round( $remaining_balance / 2, 2 );
-        $third_payment_amount  = $remaining_balance - $second_payment_amount;
+		$total_amount          = $order->get_total();
+		$remaining_balance     = $total_amount - $first_payment_amount;
+		$second_payment_amount = round( $remaining_balance / 2, 2 );
+		$third_payment_amount  = $remaining_balance - $second_payment_amount;
 
-        $installments = array(
-            array(
-                'amount'   => $first_payment_amount,
-                'due_date' => current_time( 'mysql' ),  
-                'status'   => 'paid',
-            ),
-            array(
-                'amount'   => $second_payment_amount,
-                'due_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+30 days' ) ),
-                'status'   => 'pending',
-            ),
-            array(
-                'amount'   => $third_payment_amount,
-                'due_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+60 days' ) ),
-                'status'   => 'pending',
-            ),
-        );
+		$installments = array(
+			array(
+				'amount'   => $first_payment_amount,
+				'due_date' => current_time( 'mysql' ),
+				'status'   => 'paid',
+			),
+			array(
+				'amount'   => $second_payment_amount,
+				'due_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+30 days' ) ),
+				'status'   => 'pending',
+			),
+			array(
+				'amount'   => $third_payment_amount,
+				'due_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+60 days' ) ),
+				'status'   => 'pending',
+			),
+		);
 
-        $this->database_manager->save_subscription( $order->get_id(), $installments );
+		$this->database_manager->save_subscription( $order->get_id(), $installments );
 
-        $order->add_order_note(
-            __( 'Pay in 3: Installment plan created successfully. Future payments are due in 30 and 60 days', 'pay-in-3' )
-        );
-    }
+		$order->add_order_note(
+			__( 'Pay in 3: Installment plan created successfully. Future payments are due in 30 and 60 days', 'pay-in-3' )
+		);
+	}
 }
