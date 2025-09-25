@@ -88,4 +88,124 @@ class Manager {
 
 		return $subscription_id;
 	}
+
+	/**
+	 * Provides installments table name.
+	 *
+	 * @return void
+	 */
+    private function get_installments_table_name() {
+        global $wpdb;
+        return $wpdb->prefix . 'pay_in_3_installments'; 
+    }
+    
+	/**
+	 * Provides subscription table name.
+	 *
+	 * @return void
+	 */
+	private function get_subscriptions_table_name() {
+        global $wpdb;
+        return $wpdb->prefix . 'pay_in_3_subscriptions'; 
+    }
+	
+	/**
+	 * Retrieves all installments that are due for payment today or are overdue.
+	 *
+	 * @return array Array of database rows (installments), or an empty array.
+	 */ 
+    public function get_due_installments() {
+        global $wpdb;
+        $table_name = $this->get_installments_table_name();
+        $current_date = current_time('mysql');
+        
+        $query = $wpdb->prepare(
+            "SELECT * FROM {$table_name} 
+             WHERE due_date <= %s 
+             AND status NOT IN ('paid', 'processing', 'cancelled', 'expired')
+             ORDER BY due_date ASC",
+            $current_date
+        );
+        
+        $results = $wpdb->get_results( $query, ARRAY_A );
+        return is_array( $results ) ? $results : [];
+    }
+    
+	/**
+	 * Updates the status and/or transaction ID for a single installment.
+	 *
+	 * @param int $installment_id The ID of the installment to update.
+	 * @param array $data An associative array of column_name => value to update.
+	 * @return bool True on success, false otherwise.
+	 */
+    public function update_installment( $installment_id, $data ) {
+        global $wpdb;
+        $table_name = $this->get_installments_table_name();
+        
+        return $wpdb->update( 
+            $table_name, 
+            $data, 
+            ['id' => $installment_id ],
+            array_fill(0, count($data), '%s')
+        ) !== false;
+    }
+
+	/**
+	 * Checks if all installments for a subscription are paid.
+	 *
+	 * @param int $subscription_id The ID of the subscription record.
+	 * @return bool True if all installments are 'paid', false otherwise.
+	 */
+    public function are_all_installments_paid( $subscription_id ) {
+        global $wpdb;
+        $table_name = $this->get_installments_table_name();
+        
+        $count = $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(id) FROM {$table_name} WHERE subscription_id = %d AND status != 'paid'",
+            $subscription_id
+        ) );
+        
+        return (int) $count === 0;
+    }
+
+	/**
+	 * Updates the status of the main subscription record.
+	 *
+	 * @param int $subscription_id The ID of the subscription.
+	 * @param string $status The new status (e.g., 'complete', 'failed').
+	 * @return bool True on success, false otherwise.
+	 */
+    public function update_subscription_status( $subscription_id, $status ) {
+        global $wpdb;
+        $table_name = $this->get_subscriptions_table_name();
+        
+        return $wpdb->update( 
+            $table_name, 
+            [
+				'status' => $status, 
+				'updated_at' => current_time('mysql'),
+			],
+            [
+				'id' => $subscription_id,
+			],
+            ['%s', '%s'],
+            ['%d'],
+        ) !== false;
+    }
+    
+	/**
+	 * Gets a subscription record by its WooCommerce Order ID.
+	 *
+	 * @param int $order_id The ID of the order.
+	 * @return void
+	 */
+    public function get_subscription_by_order_id( $order_id ) {
+        global $wpdb;
+        $table_name = $this->get_subscriptions_table_name();
+        
+        return $wpdb->get_row( $wpdb->prepare(
+            "SELECT * FROM {$table_name} WHERE order_id = %d",
+            $order_id
+        ), ARRAY_A );
+    }
 }
