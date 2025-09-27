@@ -35,6 +35,13 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 	protected $database_manager;
 
 	/**
+	 * Logger instance.
+	 *
+	 * @var \WC_Logger
+	 */
+	private $logger;
+
+	/**
 	 * Constructor for the Gateway
 	 */
 	public function __construct() {
@@ -46,6 +53,7 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 		$this->method_description = __( 'Allows customers to pay for their order in three installments.', 'pay-in-3' );
 		$this->api_provider       = new MockProvider();
 		$this->database_manager   = new Manager();
+		$this->logger             = wc_get_logger();
 
 		// Method with all the settings fields.
 		$this->init_form_fields();
@@ -137,9 +145,25 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 
 		$first_installment_amount = $order->get_total() / 3;
 
+		$amount_text = wc_format_decimal( $first_installment_amount, wc_get_price_decimals() );
+		$this->logger->info(
+			sprintf('Processing payment for Order# %d. First installment amount: %s', $order_id, $amount_text),
+			[ 'source' => 'pay-in-3-gateway' ] 
+		);
 		try {
 			$response = $this->api_provider->charge( $first_installment_amount );
+			
+			$this->logger->info(
+				sprintf('API response for Order# %d: Status: %s, ID: %s', $order_id, $response->status, $response->id ),
+				[ 'source' => 'pay-in-3-gateway' ] 
+			);
+			
+
 			if ( 'success' !== $response->status ) {
+				$this->logger->error(
+					sprintf('Payment failed for Order# %d. API returned status: %s', $order_id, $response->status ),
+					[ 'source' => 'pay-in-3-gateway' ] 
+				);
 				throw new \Exception( __( 'Payment failed. Please try again or contact support', 'pay-in-3' ) );
 			}
 
@@ -163,6 +187,10 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 			);
 
 		} catch ( \Exception $e ) {
+			$this->logger->error(
+				sprintf('Error processing payment for Order# %d: %s', $order_id, $e->getMessage() ),
+				[ 'source' => 'pay-in-3-gateway' ] 
+			);
 			wc_add_notice( $e->getMessage(), 'error' );
 			return array(
 				'result' => 'fail',
@@ -226,31 +254,50 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 
 		$total_amount          = $order->get_total();
 		$remaining_balance     = $total_amount - $first_payment_amount;
-		$second_payment_amount = round( $remaining_balance / 2, 2 );
-		$third_payment_amount  = $remaining_balance - $second_payment_amount;
+		$second_payment_amount = (float) wc_format_decimal( $remaining_balance / 2, wc_get_price_decimals() );
+		$third_payment_amount  = (float) wc_format_decimal($remaining_balance - $second_payment_amount, wc_get_price_decimals());
 
+		$now_ts = current_time( 'timestamp' );
+		$due_now = current_time( 'mysql' );
+		$due_30 = gmdate( 'Y-m-d H:i:s', $now_ts + ( 30 * DAY_IN_SECONDS ) );
+		$due_60 = gmdate( 'Y-m-d H:i:s', $now_ts + ( 60 * DAY_IN_SECONDS ) );
+		
+		
 		$installments = array(
 			array(
 				'amount'   => $first_payment_amount,
-				'due_date' => current_time( 'mysql' ),
+				'due_date' => $due_now,
 				'status'   => 'paid',
 			),
 			array(
 				'amount'   => $second_payment_amount,
-				'due_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+30 days' ) ),
+				'due_date' => $due_30,
 				'status'   => 'pending',
 			),
 			array(
 				'amount'   => $third_payment_amount,
-				'due_date' => gmdate( 'Y-m-d H:i:s', strtotime( '+60 days' ) ),
+				'due_date' => $due_60,
 				'status'   => 'pending',
 			),
 		);
 
-		$this->database_manager->save_subscription( $order->get_id(), $installments );
+		$order_id = $order->get_id();
+		$this->database_manager->save_subscription( $order_id, $installments );
 
 		$order->add_order_note(
 			__( 'Pay in 3: Installment plan created successfully. Future payments are due in 30 and 60 days', 'pay-in-3' )
+		);
+
+		$second_amount_text = wc_format_decimal( $second_payment_amount, wc_get_price_decimals() );
+		$this->logger->info(
+			sprintf('Installments for Order# %d. Second installment amount: %s on %s', $order_id, $second_amount_text, $installments[1]['due_date'] ),
+			[ 'source' => 'pay-in-3-gateway' ] 
+		);
+
+		$third_amount_text = wc_format_decimal( $third_payment_amount, wc_get_price_decimals() );
+		$this->logger->info(
+			sprintf('Installments for Order# %d. Third installment amount: %s on %s', $order_id, $third_amount_text, $installments[2]['due_date'] ),
+			[ 'source' => 'pay-in-3-gateway' ] 
 		);
 	}
 }

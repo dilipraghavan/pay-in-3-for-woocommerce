@@ -78,7 +78,7 @@ class Handler {
 	public function handle_webhook( $request ) {
 
 		$body = $request->get_body();
-		$this->logger->info( 'Webhook received: ' . $body, 'pay-in-3-webhook' );
+		$this->logger->info( 'Webhook received: ' . $body, [ 'source' => 'pay-in-3-webhook' ] );
 
 		if ( ! $this->verify_signature( $request ) ) {
 			return new \WP_REST_Response(
@@ -116,16 +116,14 @@ class Handler {
 		$signature_header = $request->get_header( 'x_payin3_signature' );
 		$body             = $request->get_body();
 
-		if ( empty( $signature_header[0] ) ) {
-			$this->logger->error( ' Webhook: Missing signature header.', 'pay-in-3-webhook' );
+		if ( empty( $signature_header ) ) {
+			$this->logger->error( ' Webhook: Missing signature header.', [ 'source' => 'pay-in-3-webhook' ] );
 			return false;
 		}
 
-		$signature = $signature_header[0];
-
 		$expected_signature = hash_hmac( 'sha256', $body, self::WEBHOOK_SECRET );
 
-		return hash_equals( $expected_signature, $signature );
+		return hash_equals( $expected_signature, $signature_header );
 	}
 
 
@@ -138,15 +136,15 @@ class Handler {
 	private function is_duplicate_event( $request ) {
 		$idempotency_header = $request->get_header( 'x_payin3_idempotency' );
 
-		if ( empty( $idempotency_header[0] ) ) {
-			$this->logger->warning( 'Webhook: Missing idempotency header. Processing, but risk of replay present.', 'pay-in-3-webhook' );
+		if ( empty( $idempotency_header ) ) {
+			$this->logger->warning( 'Webhook: Missing idempotency header. Processing, but risk of replay present.', [ 'source' => 'pay-in-3-webhook' ] );
 			return false;
 		}
 
-		$idempotency_key = sanitize_key( $idempotency_header[0] );
+		$idempotency_key = sanitize_key( $idempotency_header );
 
 		if ( get_transient( $idempotency_key ) ) {
-			$this->logger->warning( 'Webhook: Duplicate event blocked. Key: ' . $idempotency_key, 'pay-in-3-webhook' );
+			$this->logger->warning( 'Webhook: Duplicate event blocked. Key: ' . $idempotency_key, [ 'source' => 'pay-in-3-webhook' ] );
 			return true;
 		}
 

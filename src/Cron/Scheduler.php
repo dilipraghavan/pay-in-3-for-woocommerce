@@ -94,21 +94,21 @@ class Scheduler {
 	 */
 	public function handle_due_installments() {
 
-		$this->logger->info( 'Cron: Starting daily installment processing.', 'pay-in-3-cron' );
+		$this->logger->info( 'Cron: Starting daily installment processing.', [ 'source' => 'pay-in-3-cron' ] );
 		$due_installments = $this->db_manager->get_due_installments();
 
 		if ( empty( $due_installments ) ) {
-			$this->logger->info( 'Cron: No installments currently due.', 'pay-in-3-cron' );
+			$this->logger->info( 'Cron: No installments currently due.', [ 'source' => 'pay-in-3-cron' ] );
 			return;
 		}
 
-		$this->logger->info( sprintf( 'Cron: Found %d installments to process.', count( $due_installments ) ), 'pay-in-3-cron' );
+		$this->logger->info( sprintf( 'Cron: Found %d installments to process.', count( $due_installments ) ), [ 'source' => 'pay-in-3-cron' ] );
 
 		foreach ( $due_installments as $installment ) {
 			$this->process_single_payment( $installment );
 		}
 
-		$this->logger->info( 'Cron: Finished daily installment processing.', 'pay-in-3-cron' );
+		$this->logger->info( 'Cron: Finished daily installment processing.', [ 'source' => 'pay-in-3-cron' ] );
 	}
 
 	/**
@@ -122,22 +122,22 @@ class Scheduler {
 		$installment_id  = absint( $installment['id'] );
 		$order_id        = absint( $installment['order_id'] );
 		$amount          = (float) $installment['amount'];
-		$current_retries = absint( $installment['retires'] );
+		$current_retries = absint( $installment['retries'] );
 
 		$order = wc_get_order( $order_id );
 
 		if ( ! $order instanceof WC_Order ) {
-			$this->logger->error( sprintf( 'Cron: Order %d not found...', $order_id, $installment_id ), 'pay-in-3-cron' );
+			$this->logger->error( sprintf( 'Cron: Order %d installment %d not found...', $order_id, $installment_id ), [ 'source' => 'pay-in-3-cron' ] );
 			return;
 		}
 
 		if ( $current_retries >= self::MAX_RETRIES ) {
-			$this->fail_subsciption_permanently( $order, $installment_id );
+			$this->fail_subscription_permanently( $order, $installment_id );
 			return;
 		}
 
 		try {
-			$response = $this->api_provider->charge( $amount, $order_id );
+			$response = $this->api_provider->charge( $amount);
 
 			if ( 'success' === $response->status ) {
 				$this->handle_successful_charge( $order, $installment, $response->id );
@@ -145,7 +145,7 @@ class Scheduler {
 				$this->handle_failed_charge( $order, $installment, 'Payment provider declined the charge.' );
 			}
 		} catch ( \Exception $e ) {
-				$this->handle_failed_charge( $order, $installment, 'API Exception: ' . $e->get_message() );
+				$this->handle_failed_charge( $order, $installment, 'API Exception: ' . $e->getMessage() );
 
 		}
 	}

@@ -11,6 +11,7 @@ use WpShiftStudio\PayIn3ForWC\Database\Manager as DbManager;
 use WpShiftStudio\PayIn3ForWC\Gateway\PayIn3Gateway;
 use WpShiftStudio\PayIn3ForWC\Webhook\Handler;
 use WpShiftStudio\PayIn3ForWC\Cron\Scheduler;
+use WpShiftStudio\PayIn3ForWC\AdminUI\Logs;
 
 /**
  * Initialization class for the plugin
@@ -41,6 +42,10 @@ class Init {
 
 		$scheduler = new Scheduler();
 		add_action( Scheduler::CRON_HOOK, array( $scheduler, 'handle_due_installments' ) );
+	
+		$admin_logs = new Logs();
+		add_action( 'admin_menu', array( $admin_logs, 'register_menu_page'), 99 );
+	
 	}
 
 	/**
@@ -62,5 +67,30 @@ class Init {
 	public static function register_webhook_routes() {
 		$handler = new Handler();
 		$handler->register_routes();
+	}
+
+	/**
+	 * Deletes all plugin data on uninstallation.
+	 *
+	 * @return void
+	 */
+	public static function uninstall() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'pay_in_3_subscriptions';
+		$wpdb->query( "DROP TABLE IF EXISTS {$table_name}" );
+
+		$table_name_installments = $wpdb->prefix . 'pay_in_3_installments';
+		$wpdb->query( "DROP TABLE IF EXISTS {$table_name_installments}" );
+
+		(new Scheduler())->unschedule_event();
+
+		 //remove plugin log files.
+    	$logs = Logs::get_plugin_log_files(); 
+        foreach ( $logs as $path ) {
+            if ( is_file( $path ) && is_writable( $path ) ) {
+                @unlink( $path ); // suppress errors
+            }
+        }
 	}
 }

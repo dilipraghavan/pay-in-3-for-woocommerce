@@ -20,6 +20,8 @@ require __DIR__ . '/vendor/autoload.php';
 use WpShiftStudio\PayIn3ForWC\Init;
 
 register_activation_hook( __FILE__, array( Init::class, 'activate' ) );
+register_uninstall_hook( __FILE__, array( Init::class, 'uninstall' ) );
+
 
 add_action(
 	'plugins_loaded',
