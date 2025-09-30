@@ -300,4 +300,30 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 			[ 'source' => 'pay-in-3-gateway' ] 
 		);
 	}
+
+	/**
+	 * Add content to the order confirmation page.
+	 *
+	 * @param int $order_id The order ID.
+	 */
+	public static function add_thank_you_message( $order_id ) {
+
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		if ( $order->get_payment_method() === 'pay-in-3' ) {
+
+			remove_action( 'woocommerce_thankyou', 'woocommerce_order_details_table', 10 );
+    		remove_action( 'woocommerce_thankyou', 'woocommerce_view_order', 10 );
+    		remove_action( 'woocommerce_thankyou', 'woocommerce_order_again_button', 20 );
+
+			echo '<h2>' . esc_html__( 'Payment Plan Details', 'pay-in-3' ) . '</h2>';
+			echo '<p>' . esc_html__( 'Thank you for your order! Your payment has been set up as a 3-part installment plan.', 'pay-in-3' ) . '</p>';
+			echo '<p><strong>' . esc_html__( 'First Payment:', 'pay-in-3' ) . '</strong> ' . esc_html__( 'The first third of your payment has been successfully charged.', 'pay-in-3' ) . '</p>';
+			echo '<p><strong>' . esc_html__( 'Next Payments:', 'pay-in-3' ) . '</strong> ' . esc_html__( 'The remaining two installments will be automatically billed to your card in 30 and 60 days from now.', 'pay-in-3' ) . '</p>';
+        
+		}
+	}
 }

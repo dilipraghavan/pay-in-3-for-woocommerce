@@ -46,6 +46,8 @@ class Init {
 		$admin_logs = new Logs();
 		add_action( 'admin_menu', array( $admin_logs, 'register_menu_page'), 99 );
 	
+		add_action( 'woocommerce_thankyou_pay-in-3', array( PayIn3Gateway::class, 'add_thank_you_message' ) );
+
 	}
 
 	/**
