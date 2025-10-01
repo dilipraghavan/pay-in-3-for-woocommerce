@@ -99,11 +99,10 @@ The core value is displayed on the **Order Received Page**. After a successful o
 
 To view the technical logs related to the payment and installment setup, inspect the **Order Notes** on the individual order detail page in the WordPress admin:
 
-1.  Navigate to **WooCommerce** → **Orders**.
+1.  Navigate to **WooCommerce** → **Pay in 3 Logs**.
 
-2.  Click on any order placed using the "Pay-In-3" gateway.
+2.  Select the gateway log file.
 
-3.  Check the **Order Notes** panel (usually on the right) for audit trails of the initial payment and the custom installment schedule creation.
 
 * * * * *
 
