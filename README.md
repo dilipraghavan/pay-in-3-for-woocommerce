@@ -29,7 +29,7 @@ A custom-built payment gateway plugin for WooCommerce that enables store owners 
 
 To install a ready-to-use version of the plugin, download the latest release from the official releases page.
 
-1.  Download the **.zip** file from the latest release: **[Click here to download the latest release](https://www.google.com/search?q=https://github.com/dilipraghavan/pay-in-3-for-woocommerce/releases)**.
+1.  Download the **.zip** file from the latest release: **[Click here to download the latest release](https://github.com/dilipraghavan/pay-in-3-for-woocommerce/releases)**.
 
 2.  In the WordPress dashboard, go to **Plugins** → **Add New**.
 
