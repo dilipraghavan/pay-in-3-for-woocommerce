@@ -60,6 +60,9 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 
 		// Load the settings.
 		$this->init_settings();
+
+		//Ensure settings are saved when admin save changes.
+		add_action('woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options' ));
 	}
 
 	/**
