@@ -214,6 +214,11 @@ class PayIn3Gateway extends WC_Payment_Gateway {
 			return false;
 		}
 
+		// Cart may not exist in admin context or during REST API calls.
+		if ( is_null( WC()->cart ) ) {
+			return $is_available;
+		}
+
 		// Check if the order amount is within the min/max limits.
 		$min_order_amount = (float) $this->get_option( 'min_order', 0 );
 		$max_order_amount = (float) $this->get_option( 'max_order', PHP_FLOAT_MAX );
