@@ -12,9 +12,9 @@ A custom-built payment gateway plugin for WooCommerce that enables store owners 
 
 -   **Dynamic UI Control:** Utilizes the specific dynamic hook (`woocommerce_thankyou_{gateway_id}`) to completely control and customize the "Order Received" (Thank You) page content.
 
--   **Streamlined Confirmation:** Intentionally suppresses default WooCommerce output (like the product table and addresses) to provide a **focused, custom message** that prioritizes the installment payment terms.
-
--   **Installment Scheduling:** Simulates the secure logging of a future 3-part installment schedule (30 and 60 days) to the database, ready for a separate billing process.
+-   **Streamlined Confirmation:** Replaces the default WooCommerce order confirmation with a focused message highlighting the installment payment terms.
+  
+-   **Installment Scheduling:** Automatically creates a 3-part payment plan (immediate, 30-day, and 60-day installments) and processes future charges via a scheduled WP-Cron job, including automatic retries on failure.
 
 -   **Secure Coding Standards:** Adheres to WordPress security best practices, including mandatory unslashing (`wp_unslash()`) before sanitization of input data.
 
@@ -46,7 +46,7 @@ This is the recommended method for developers to work with the source code.
     Bash
 
     ```
-    git clone https://github.com/dilipraghavan/pay-in-3-for-woocommerce.git wp-content/plugins/pay-in-3-wc
+    git clone https://github.com/dilipraghavan/pay-in-3-for-woocommerce.git wp-content/plugins/pay-in-3-for-woocommerce
 
     ```
 
