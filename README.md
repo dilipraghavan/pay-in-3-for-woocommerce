@@ -97,7 +97,7 @@ The core value is displayed on the **Order Received Page**. After a successful o
 📊 Viewing Reports
 ------------------
 
-To view the technical logs related to the payment and installment setup, inspect the **Order Notes** on the individual order detail page in the WordPress admin:
+To view the technical logs related to the payment and installment setup:
 
 1.  Navigate to **WooCommerce** → **Pay in 3 Logs**.
 
